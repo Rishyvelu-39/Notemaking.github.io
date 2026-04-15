@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notes App with Categories & Tags</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 20px;
+      background: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      margin: 5px 0;
+      padding: 10px;
+    }
+    .note {
+      background: white;
+      padding: 10px;
+      margin-top: 10px;
+      border-left: 5px solid #007bff;
+    }
+    .tags {
+      color: green;
+      font-size: 14px;
+    }
+    .category {
+      color: blue;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📝 Notes App</h1>
+
+  <!-- Input Section -->
+  <input type="text" id="title" placeholder="Title">
+  <textarea id="content" placeholder="Write your note..."></textarea>
+
+  <select id="category">
+    <option value="Personal">Personal</option>
+    <option value="Study">Study</option>
+    <option value="Work">Work</option>
+  </select>
+
+  <input type="text" id="tags" placeholder="Tags (comma separated)">
+  <button onclick="addNote()">Add Note</button>
+
+  <!-- Filter -->
+  <h3>🔍 Filter</h3>
+  <input type="text" id="searchTag" placeholder="Search by tag">
+  <button onclick="searchByTag()">Search</button>
+
+  <select id="filterCategory" onchange="filterByCategory()">
+    <option value="All">All Categories</option>
+    <option value="Personal">Personal</option>
+    <option value="Study">Study</option>
+    <option value="Work">Work</option>
+  </select>
+
+  <!-- Notes Display -->
+  <div id="notes"></div>
+</div>
+
+<script>
+let notes = JSON.parse(localStorage.getItem("notes")) || [];
+
+function saveNotes() {
+  localStorage.setItem("notes", JSON.stringify(notes));
+}
+
+function addNote() {
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+  const category = document.getElementById("category").value;
+  const tags = document.getElementById("tags").value.split(",");
+
+  if (!title || !content) {
+    alert("Please fill all fields!");
+    return;
+  }
+
+  const note = {
+    id: Date.now(),
+    title,
+    content,
+    category,
+    tags: tags.map(t => t.trim())
+  };
+
+  notes.push(note);
+  saveNotes();
+  displayNotes(notes);
+
+  document.getElementById("title").value = "";
+  document.getElementById("content").value = "";
+  document.getElementById("tags").value = "";
+}
+
+function displayNotes(notesToShow) {
+  const notesDiv = document.getElementById("notes");
+  notesDiv.innerHTML = "";
+
+  notesToShow.forEach(note => {
+    notesDiv.innerHTML += `
+      <div class="note">
+        <h3>${note.title}</h3>
+        <p>${note.content}</p>
+        <p class="category">Category: ${note.category}</p>
+        <p class="tags">Tags: ${note.tags.join(", ")}</p>
+        <button onclick="deleteNote(${note.id})">Delete</button>
+      </div>
+    `;
+  });
+}
+
+function deleteNote(id) {
+  notes = notes.filter(note => note.id !== id);
+  saveNotes();
+  displayNotes(notes);
+}
+
+function filterByCategory() {
+  const category = document.getElementById("filterCategory").value;
+
+  if (category === "All") {
+    displayNotes(notes);
+  } else {
+    const filtered = notes.filter(note => note.category === category);
+    displayNotes(filtered);
+  }
+}
+
+function searchByTag() {
+  const tag = document.getElementById("searchTag").value.trim();
+
+  const filtered = notes.filter(note =>
+    note.tags.includes(tag)
+  );
+
+  displayNotes(filtered);
+}
+
+// Initial load
+displayNotes(notes);
+</script>
+
+</body>
+</html>
